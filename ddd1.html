@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duel Dice Dopamine Death game</title>
+<style>
+/* ==========================================
+   共通・ベーススタイル
+   ========================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    background: #0d0d11;
+    color: #ffffff;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+.game-window {
+    width: 100%;
+    max-width: 1050px;
+    min-height: 620px;
+    background: #15151e;
+    border: 4px solid #2d2d3d;
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================
+   1. スタート画面
+   ========================================== */
+#startScreen {
+    text-align: center;
+    padding: 60px 10px;
+}
+
+#startScreen h1 {
+    font-size: 46px;
+    margin-bottom: 40px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(45deg, #ff0055, #00ffcc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0,255,204,0.2);
+}
+
+.description-box {
+    border: 3px solid #ffffff;
+    background: #1f1f2e;
+    padding: 40px 20px;
+    width: 80%;
+    margin: 0 auto 50px auto;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255,255,255,0.05);
+}
+
+.description-box p {
+    font-size: 30px;
+    margin: 0;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* 共通四角形ボタン */
+.rect-btn {
+    display: inline-block;
+    border: 3px solid #ffffff;
+    background: #252538;
+    color: #ffffff;
+    padding: 14px 64px;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    box-shadow: 0 5px 0 #111;
+    transition: all 0.1s ease;
+}
+.rect-btn:hover {
+    background: #ffffff;
+    color: #12121a;
+}
+.rect-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #111;
+}
+.rect-btn:disabled {
+    border-color: #444;
+    color: #666;
+    background: #1a1a24;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+}
+
+/* ==========================================
+   高度なCSSアート: 上半身イラスト
+   ========================================== */
+.bustup-art {
+    width: 180px;
+    height: 220px;
+    position: relative;
+    background: #1a1a26;
+    border: 3px solid #3d3d52;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* --- P1: ドクター (上半身) --- */
+.art-doctor .head {
+    width: 66px;
+    height: 80px;
+    background: #ffdbac;
+    border-radius: 30px 30px 40px 40px;
+    position: absolute;
+    top: 45px;
+    left: 57px;
+    z-index: 3;
+}
+.art-doctor .hair {
+    width: 76px;
+    height: 45px;
+    background: #4a3728;
+    border-radius: 40px 40px 10px 10px;
+    position: absolute;
+    top: 35px;
+    left: 52px;
+    z-index: 4;
+}
+.art-doctor .hair-spike {
+    width: 20px;
+    height: 30px;
+    background: #4a3728;
+    position: absolute;
+    top: 25px;
+    left: 75px;
+    border-radius: 50% 50% 0 0;
+    transform: rotate(15deg);
+    z-index: 4;
+}
+.art-doctor .glasses {
+    display: flex;
+    position: absolute;
+    top: 70px;
+    left: 60px;
+    gap: 2px;
+    z-index: 5;
+}
+.art-doctor .lens {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #111;
+    border-radius: 50%;
+    background: rgba(0, 255, 204, 0.3);
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+}
+.art-doctor .coat {
+    width: 140px;
+    height: 110px;
+    background: #ffffff;
+    border-radius: 40px 40px 0 0;
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    z-index: 2;
+    border: 2px solid #ddd;
+}
+.art-doctor .shirt {
+    width: 50px;
+    height: 60px;
+    background: #1cb843; /* ドクターカラーのインナー */
+    position: absolute;
+    bottom: 45px;
+    left: 65px;
+    z-index: 1;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.art-doctor .necktie {
+    width: 10px;
+    height: 40px;
+    background: #111;
+    position: absolute;
+    bottom: 15px;
+    left: 85px;
+    z-index: 2;
+}
+
+/* --- P2: ドラゴン (上半身) --- */
+.art-dragon .head {
+    width: 90px;
+    height: 70px;
+    background: #559933;
+    border-radius: 40px 50px 20px 30px;
+    position: absolute;
+    top: 50px;
+    left: 45px;
+    z-index: 3;
+}
+.art-dragon .horn-left {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 45px solid #aacc22; /* ドラゴンカラーの角 */
+    position: absolute;
+    top: 15px;
+    left: 50px;
+    transform: rotate(-25deg);
+    z-index: 2;
+}
+.art-dragon .horn-right {
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 40px solid #88aa11;
+    position: absolute;
+    top: 20px;
+    left: 85px;
+    transform: rotate(15deg);
+    z-index: 2;
+}
+.art-dragon .eye {
+    width: 20px;
+    height: 14px;
+    background: #ffcc00;
+    clip-path: polygon(0 50%, 100% 0, 80% 100%);
+    position: absolute;
+    top: 70px;
+    left: 95px;
+    z-index: 4;
+    box-shadow: 0 0 10px #ffcc00;
+}
+.art-dragon .body-trunk {
+    width: 130px;
+    height: 110px;
+    background: #3c7320;
+    border-radius: 50px 50px 0 0;
+    position: absolute;
+    bottom: 0;
+    left: 25px;
+    z-index: 1;
+}
+.art-dragon .chest-plate {
+    width: 60px;
+    height: 90px;
+    background: #aabb22; /* 腹側の蛇腹カラー */
+    position: absolute;
+    bottom: 0;
+    left: 60px;
+    border-radius: 30px 30px 0 0;
+    z-index: 2;
+    clip-path: ellipse(40% 50% at 50% 50%);
+}
+.art-dragon .wing {
+    width: 70px;
+    height: 100px;
+    background: #274d14;
+    position: absolute;
+    top: 80px;
+    left: -10px;
+    border-radius: 50% 0 50% 50%;
+    transform: rotate(-20deg);
+    z-index: 0;
+}
+
+/* アニメーション用：吐き出す炎 */
+.art-dragon .fire-breath {
+    position: absolute;
+    top: 80px;
+    left: 125px;
+    width: 45px;
+    height: 30px;
+    background: linear-gradient(90deg, #ffdd00, #ff3300);
+    clip-path: polygon(0 30%, 40% 0, 30% 40%, 100% 20%, 60% 60%, 90% 100%, 30% 70%, 10% 90%);
+    animation: firePulse 0.2s infinite alternate;
+    z-index: 5;
+    opacity: 0; /* 通常は非表示、バトル画面のみスクリプトで制御、もしくは常時駆動 */
+}
+.battle-layout .art-dragon .fire-breath {
+    opacity: 1; /* 戦闘中のみ炎を吹かせる */
+}
+
+@keyframes firePulse {
+    0% { transform: scale(0.9) translate(-2px, -2px); }
+    100% { transform: scale(1.1) translate(3px, 1px); }
+}
+
+/* ==========================================
+   2. 準備画面 & 戦闘画面共通レイアウト
+   ========================================== */
+.screen-title {
+    text-align: center;
+    font-size: 26px;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #8f8fab;
+    letter-spacing: 1px;
+}
+
+.main-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 30px;
+    min-height: 280px;
+}
+
+.char-area {
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.flip-x {
+    transform: scaleX(-1);
+}
+/* 反転させたドラゴンの炎の向きを直す調整 */
+.flip-x .fire-breath {
+    transform: scaleX(-1);
+    left: -35px;
+}
+
+/* ダメージポップアップ */
+.damage-popup-container {
+    position: absolute;
+    top: -20px;
+    font-size: 45px;
+    font-weight: 900;
+    color: #ff2255;
+    text-shadow: 0 0 10px rgba(0,0,0,1), 0 0 5px #ff2255;
+    opacity: 0;
+    z-index: 100;
+    pointer-events: none;
+    font-family: 'Impact', sans-serif;
+}
+
+@keyframes fadeOutUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-50px) scale(0.9); }
+}
+.animate-damage {
+    animation: fadeOutUp 1.3s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.info-box-large {
+    border: 3px solid #ffffff;
+    background: #1a1a26;
+    border-radius: 8px;
+    padding: 15px;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+}
+
+.info-box-title {
+    font-size: 15px;
+    color: #6a6a8a;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.dice-box-zone { width: 30%; }
+.dice-display-area {
+    font-size: 52px;
+    letter-spacing: 12px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+.card-box-zone { width: 40%; }
+.cards-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+.card-item {
+    background: #252535;
+    border: 2px solid #44445c;
+    border-radius: 6px;
+    padding: 12px 8px;
+    width: 135px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.card-item:hover {
+    border-color: #8f8fab;
+    background: #2e2e42;
+    transform: translateY(-2px);
+}
+.card-item.selected {
+    border-color: #ff0055;
+    background: #3d1b2a;
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+}
+.card-item h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #ff3366;
+}
+.card-item p {
+    margin: 0;
+    font-size: 12px;
+    color: #b0b0cd;
+    line-height: 1.4;
+}
+
+.action-row {
+    text-align: center;
+    margin-top: 10px;
+}
+.choice-buttons-wrap {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+/* ==========================================
+   3. 戦闘実行画面 特有（超強化ネオンDUEL）
+   ========================================== */
+.battle-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 25px;
+    background: #11111a;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #222233;
+}
+
+.battle-info-container {
+    display: flex;
+    gap: 12px;
+    width: 36%;
+}
+.battle-sub-box {
+    flex: 1;
+    border: 3px solid #ffffff;
+    background: #181824;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 130px;
+    text-align: center;
+}
+.battle-sub-box h5 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #6a6a8a;
+    text-transform: uppercase;
+}
+
+/* 中央超かっこいいDUELゾーン */
+.duel-center-zone {
+    width: 28%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    position: relative;
+}
+
+/* サイバーサークル背景（回転アニメーション） */
+.cyber-ring {
+    position: absolute;
+    width: 170px;
+    height: 170px;
+    border: 2px dashed #ff0055;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
+    animation: rotateRing 8s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+@keyframes rotateRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 脈動する特大星型DUELボタン */
+.star-duel-btn {
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, #ff0055 0%, #990033 100%);
+    clip-path: polygon(50% 0%, 65% 28%, 98% 35%, 75% 58%, 79% 91%, 50% 75%, 21% 91%, 25% 58%, 2% 35%, 35% 28%);
+    color: #ffffff;
+    border: none;
+    font-size: 26px;
+    font-family: 'Impact', sans-serif;
+    letter-spacing: 1px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    z-index: 10;
+    position: relative;
+    text-shadow: 0 3px 5px rgba(0,0,0,0.5);
+    box-shadow: 0 0 30px rgba(255, 0, 85, 0.6);
+    animation: pulseGlow 1.5s infinite alternate;
+    transition: transform 0.1s;
+}
+.star-duel-btn:hover {
+    background: radial-gradient(circle, #ff2277 0%, #cc0044 100%);
+    transform: scale(1.08);
+}
+.star-duel-btn:active {
+    transform: scale(0.92);
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 20px rgba(255, 0, 85, 0.5); filter: brightness(1); }
+    100% { box-shadow: 0 0 40px rgba(255, 0, 85, 0.9); filter: brightness(1.2); }
+}
+
+#battleLog {
+    background: #09090f;
+    border: 1px solid #222233;
+    padding: 14px;
+    border-radius: 8px;
+    max-width: 650px;
+    margin: 20px auto 0 auto;
+    font-size: 14px;
+    text-align: left;
+    max-height: 120px;
+    overflow-y: auto;
+    color: #a5a5c5;
+    line-height: 1.5;
+}
+
+/* ==========================================
+   4. 下部ステータスバー
+   ========================================== */
+.status-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    border-top: 2px solid #222233;
+    padding-top: 20px;
+}
+
+.hp-container {
+    display: flex;
+    align-items: center;
+    width: 45%;
+    gap: 15px;
+}
+.hp-container.p2-side { flex-direction: row-reverse; }
+
+.hp-bar-outer {
+    flex-grow: 1;
+    height: 38px;
+    border: 3px solid #ffffff;
+    background: #111116;
+    position: relative;
+    border-radius: 4px;
+    box-shadow: inset 0 3px 5px rgba(0,0,0,0.8);
+}
+
+.hp-bar-inner {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#p1HpInner { background: linear-gradient(90deg, #158a30, #1cb843); box-shadow: 0 0 10px rgba(28,184,67,0.5); }
+#p2HpInner { background: linear-gradient(90deg, #889911, #aabb22); box-shadow: 0 0 10px rgba(170,187,34,0.5); }
+
+.hp-text {
+    font-size: 34px;
+    font-weight: bold;
+    font-family: 'Impact', sans-serif;
+    white-space: nowrap;
+    letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<div class="game-window">
+
+    <div id="startScreen">
+        <h1>Duel Dice Dopamine Death game</h1>
+        <div class="description-box">
+            <p>さいころを振って敵を倒そう</p>
+        </div>
+        <button class="rect-btn" id="startBtn">スタート</button>
+    </div>
+
+    <div id="prepScreen" class="hidden">
+        <h2 id="prepTitle" class="screen-title">プレイヤー1の準備画面</h2>
+        
+        <div class="main-layout">
+            <div class="char-area">
+                <div id="prepAvatarSlot"></div>
+                <div style="font-size:16px; font-weight:bold; margin-top:12px; color:#cdd;" id="prepPlayerName">P1: ドクター</div>
+            </div>
+
+            <div class="dice-box-zone">
+                <div class="info-box-large">
+                    <div class="info-box-title">さいころ二つ</div>
+                    <div id="prepDiceDisplay" class="dice-display-area">🎲 🎲</div>
+                </div>
+            </div>
+
+            <div class="card-box-zone">
+                <div class="info-box-large">
+                    <div class="info-box-title">カード二つと選択</div>
+                    <div id="prepCardContainer" class="cards-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="rect-btn" id="prepMainBtn">さいころを振る</button>
+            <div id="cardChoiceWrap" class="choice-buttons-wrap hidden">
+                <button class="rect-btn" id="drawCardBtn">カードを引く</button>
+                <button class="rect-btn" id="skipCardBtn">カードを引かない</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="battleScreen" class="hidden">
+        <h2 class="screen-title">戦闘フェーズ</h2>
+        
+        <div class="battle-layout">
+            <div class="battle-info-container">
+                <div class="battle-sub-box">
+                    <h5>P1 さいころ</h5>
+                    <div id="bP1Dice" style="font-size: 34px; margin-top:12px;">🎲 🎲</div>
+                </div>
+                <div class="battle-sub-box">
+                    <h5>P1 カード</h5>
+                    <div id="bP1Card" style="font-size: 15px; font-weight:bold; color:#ff3366; margin-top:12px;">なし</div>
+                </div>
+            </div>
+
+            <div class="duel-center-zone">
+                <div class="cyber-ring" id="cRing"></div>
+                <button class="star-duel-btn" id="duelBtn">DUEL</button>
+                <button class="rect-btn hidden" id="nextBtn" style="z-index:20;">NEXT</button>
+            </div>
+
+            <div class="battle-info-container">
+                <div class="battle-sub-box">
+                    <h5>P2 カード</h5>
+                    <div id="bP2Card" style="font-size: 15px; font-weight:bold; color:#ff3366; margin-top:12px;">なし</div>
+                </div>
+                <div class="battle-sub-box">
+                    <h5>P2 さいころ</h5>
+                    <div id="bP2Dice" style="font-size: 34px; margin-top:12px;">🎲 🎲</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 20px;">
+            <div class="char-area" style="width: 45%;">
+                <div id="bPopP1" class="damage-popup-container">0</div>
+                <div class="bustup-art art-doctor">
+                    <div class="hair-spike"></div>
+                    <div class="hair"></div>
+                    <div class="head"></div>
+                    <div class="glasses">
+                        <div class="lens"></div>
+                        <div class="lens"></div>
+                    </div>
+                    <div class="shirt"></div>
+                    <div class="necktie"></div>
+                    <div class="coat"></div>
+                </div>
+                <div style="font-size:15px; font-weight:bold; color:#8f8fab; margin-top:8px;">P1: ドクター</div>
+            </div>
+            
+            <div class="char-area" style="width: 45%;">
+                <div id="bPopP2" class="damage-popup-container">0</div>
+                <div class="bustup-art art-dragon flip-x">
+                    <div class="wing"></div>
+                    <div class="horn-left"></div>
+                    <div class="horn-right"></div>
+                    <div class="body-trunk"></div>
+                    <div class="chest-plate"></div>
+                    <div class="head"></div>
+                    <div class="eye"></div>
+                    <div class="fire-breath"></div>
+                </div>
+                <div style="font-size:15px; font-weight:bold; color:#8f8fab; margin-top:8px;">P2: ドラゴン</div>
+            </div>
+        </div>
+
+        <div id="battleLog">戦闘を開始してください。</div>
+    </div>
+
+    <div class="status-footer hidden" id="globalStatus">
+        <div class="hp-container">
+            <div class="hp-bar-outer">
+                <div id="p1HpInner" class="hp-bar-inner"></div>
+            </div>
+            <div class="hp-text" id="p1HpText">50/50</div>
+        </div>
+
+        <div class="hp-container p2-side">
+            <div class="hp-bar-outer">
+                <div id="p2HpInner" class="hp-bar-inner"></div>
+            </div>
+            <div class="hp-text" id="p2HpText">50/50</div>
+        </div>
+    </div>
+
+</div>
+
+<div id="artTemplates" class="hidden">
+    <div class="bustup-art art-doctor" id="tDoc">
+        <div class="hair-spike"></div>
+        <div class="hair"></div>
+        <div class="head"></div>
+        <div class="glasses">
+            <div class="lens"></div>
+            <div class="lens"></div>
+        </div>
+        <div class="shirt"></div>
+        <div class="necktie"></div>
+        <div class="coat"></div>
+    </div>
+    
+    <div class="bustup-art art-dragon" id="tDra">
+        <div class="wing"></div>
+        <div class="horn-left"></div>
+        <div class="horn-right"></div>
+        <div class="body-trunk"></div>
+        <div class="chest-plate"></div>
+        <div class="head"></div>
+        <div class="eye"></div>
+    </div>
+</div>
+
+<script>
+const CARDS_PRESET = [
+    { name: "Disposal", title: "廃棄", desc: "片方のサイコロを振り直す" },
+    { name: "Dinamite", title: "ダイナマイト", desc: "自分に10ダメージ" },
+    { name: "Drop out", title: "降参", desc: "使用すると敗北" },
+    { name: "Dizzy", title: "めまい", desc: "次ターン自分のカード内容が見えなくなる" },
+    { name: "Disaster", title: "災害", desc: "お互い10ダメージ" }
+];
+
+const DICE_ICONS = { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" };
+
+let p1HP = 50; let p2HP = 50; const maxHP = 50;
+let currentPlayer = 1; let phase = "start";   
+
+let p1Data = { d1: 0, d2: 0, selectedCard: null, drawnCards: [] };
+let p2Data = { d1: 0, d2: 0, selectedCard: null, drawnCards: [] };
+
+let p1Dizzy = false; let p2Dizzy = false;
+let disposalActive = false; let disposalTargetPlayer = 0;
+
+const startScreen = document.getElementById("startScreen");
+const prepScreen = document.getElementById("prepScreen");
+const battleScreen = document.getElementById("battleScreen");
+const globalStatus = document.getElementById("globalStatus");
+const startBtn = document.getElementById("startBtn");
+const prepTitle = document.getElementById("prepTitle");
+const prepAvatarSlot = document.getElementById("prepAvatarSlot");
+const prepPlayerName = document.getElementById("prepPlayerName");
+const prepDiceDisplay = document.getElementById("prepDiceDisplay");
+const prepCardContainer = document.getElementById("prepCardContainer");
+const prepMainBtn = document.getElementById("prepMainBtn");
+const cardChoiceWrap = document.getElementById("cardChoiceWrap");
+const drawCardBtn = document.getElementById("drawCardBtn");
+const skipCardBtn = document.getElementById("skipCardBtn");
+const bP1Dice = document.getElementById("bP1Dice");
+const bP1Card = document.getElementById("bP1Card");
+const bP2Dice = document.getElementById("bP2Dice");
+const bP2Card = document.getElementById("bP2Card");
+const duelBtn = document.getElementById("duelBtn");
+const nextBtn = document.getElementById("nextBtn");
+const cRing = document.getElementById("cRing");
+const bPopP1 = document.getElementById("bPopP1");
+const bPopP2 = document.getElementById("bPopP2");
+const battleLog = document.getElementById("battleLog");
+const p1HpInner = document.getElementById("p1HpInner");
+const p1HpText = document.getElementById("p1HpText");
+const p2HpInner = document.getElementById("p2HpInner");
+const p2HpText = document.getElementById("p2HpText");
+
+function rollDice() { return Math.floor(Math.random() * 6) + 1; }
+
+function updateHpDisplay() {
+    p1HpInner.style.width = Math.max(0, (p1HP / maxHP) * 100) + "%";
+    p1HpText.textContent = `${p1HP}/${maxHP}`;
+    p2HpInner.style.width = Math.max(0, (p2HP / maxHP) * 100) + "%";
+    p2HpText.textContent = `${p2HP}/${maxHP}`;
+}
+
+function getRandomCards() {
+    let shuffled = [...CARDS_PRESET].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 2);
+}
+
+function calculateDiceDamage(d1, d2) {
+    let damage = d1 + d2; let roleName = "通常";
+    if (d1 === 1 && d2 === 1) {
+        let extra = rollDice(); damage = 2 * extra; roleName = `1ゾロ(追加:${extra})`;
+    } else if (d1 % 2 === 1 && d2 % 2 === 1) {
+        damage = d1 * d2; roleName = "奇数ペア";
+    } else if (d1 % 2 === 0 && d2 % 2 === 0) {
+        damage = (d1 + d2) * 2; roleName = "偶数ペア";
+    }
+    return { damage, roleName };
+}
+
+startBtn.addEventListener("click", () => {
+    startScreen.classList.add("hidden");
+    globalStatus.classList.remove("hidden");
+    initPrepPhase(1);
+});
+
+function initPrepPhase(playerNum) {
+    currentPlayer = playerNum; phase = "prep";
+    prepScreen.classList.remove("hidden");
+    battleScreen.classList.add("hidden");
+    cardChoiceWrap.classList.add("hidden");
+    prepMainBtn.classList.remove("hidden");
+    prepMainBtn.textContent = "さいころを振る";
+    prepMainBtn.disabled = false;
+    prepDiceDisplay.textContent = "🎲 🎲";
+    prepCardContainer.innerHTML = "";
+    prepAvatarSlot.innerHTML = "";
+
+    if (currentPlayer === 1) {
+        prepTitle.textContent = "プレイヤー1の準備画面";
+        prepPlayerName.textContent = "P1: ドクター";
+        const node = document.getElementById("tDoc").cloneNode(true);
+        node.removeAttribute("id");
+        prepAvatarSlot.appendChild(node);
+        p1Data = { d1: 0, d2: 0, selectedCard: null, drawnCards: [] };
+    } else {
+        prepTitle.textContent = "プレイヤー2の準備画面";
+        prepPlayerName.textContent = "P2: ドラゴン";
+        const node = document.getElementById("tDra").cloneNode(true);
+        node.removeAttribute("id");
+        prepAvatarSlot.appendChild(node);
+        p2Data = { d1: 0, d2: 0, selectedCard: null, drawnCards: [] };
+    }
+    updateHpDisplay();
+}
+
+prepMainBtn.addEventListener("click", () => {
+    if (prepMainBtn.textContent === "さいころを振る") {
+        let d1 = rollDice(); let d2 = rollDice();
+        let currentData = (currentPlayer === 1) ? p1Data : p2Data;
+        currentData.d1 = d1; currentData.d2 = d2;
+        prepDiceDisplay.textContent = `${DICE_ICONS[d1]} ${DICE_ICONS[d2]} (${d1},${d2})`;
+        prepMainBtn.classList.add("hidden");
+        cardChoiceWrap.classList.remove("hidden");
+    } else if (prepMainBtn.textContent === "準備確定") {
+        if (currentPlayer === 1) initPrepPhase(2);
+        else initBattlePhase();
+    }
+});
+
+drawCardBtn.addEventListener("click", () => {
+    cardChoiceWrap.classList.add("hidden");
+    prepMainBtn.classList.remove("hidden");
+    prepMainBtn.textContent = "準備確定"; prepMainBtn.disabled = true;
+    let currentData = (currentPlayer === 1) ? p1Data : p2Data;
+    let isDizzy = (currentPlayer === 1) ? p1Dizzy : p2Dizzy;
+    
+    currentData.drawnCards = getRandomCards();
+    prepCardContainer.innerHTML = "";
+    currentData.drawnCards.forEach((card) => {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card-item";
+        if (isDizzy) {
+            cardDiv.innerHTML = `<h4>???</h4><p>めまいで見えない</p>`;
+        } else {
+            cardDiv.innerHTML = `<h4>${card.title}</h4><p>${card.desc}</p>`;
+        }
+        cardDiv.addEventListener("click", () => {
+            document.querySelectorAll(".card-item").forEach(c => c.classList.remove("selected"));
+            cardDiv.classList.add("selected");
+            currentData.selectedCard = card; prepMainBtn.disabled = false;
+        });
+        prepCardContainer.appendChild(cardDiv);
+    });
+    if (currentPlayer === 1) p1Dizzy = false; else p2Dizzy = false;
+});
+
+skipCardBtn.addEventListener("click", () => {
+    cardChoiceWrap.classList.add("hidden");
+    prepMainBtn.classList.remove("hidden");
+    prepMainBtn.textContent = "準備確定"; prepMainBtn.disabled = false;
+    let currentData = (currentPlayer === 1) ? p1Data : p2Data;
+    currentData.selectedCard = null;
+    prepCardContainer.innerHTML = "<p style='color:#6a6a8a; font-size:15px;'>カードなし</p>";
+    if (currentPlayer === 1) p1Dizzy = false; else p2Dizzy = false;
+});
+
+function initBattlePhase() {
+    phase = "battle";
+    prepScreen.classList.add("hidden");
+    battleScreen.classList.remove("hidden");
+    duelBtn.classList.remove("hidden");
+    nextBtn.classList.add("hidden");
+    cRing.classList.remove("hidden");
+    
+    bPopP1.classList.remove("animate-damage");
+    bPopP2.classList.remove("animate-damage");
+    bPopP1.style.opacity = "0"; bPopP2.style.opacity = "0";
+
+    bP1Dice.textContent = `${DICE_ICONS[p1Data.d1]} ${DICE_ICONS[p1Data.d2]}`;
+    bP1Card.textContent = p1Data.selectedCard ? p1Data.selectedCard.title : "なし";
+    bP2Dice.textContent = `${DICE_ICONS[p2Data.d1]} ${DICE_ICONS[p2Data.d2]}`;
+    bP2Card.textContent = p2Data.selectedCard ? p2Data.selectedCard.title : "なし";
+
+    battleLog.innerHTML = "中央の強力な [DUEL] ボタンを押して、両者の攻撃を実行せよ！";
+    disposalActive = false;
+}
+
+duelBtn.addEventListener("click", () => {
+    if (!disposalActive) {
+        if (p1Data.selectedCard && p1Data.selectedCard.name === "Disposal") { triggerDisposal(1); return; }
+        if (p2Data.selectedCard && p2Data.selectedCard.name === "Disposal") { triggerDisposal(2); return; }
+    }
+    executeBattleCalculation();
+});
+
+function triggerDisposal(playerNum) {
+    disposalActive = true; disposalTargetPlayer = playerNum;
+    let data = (playerNum === 1) ? p1Data : p2Data;
+    battleLog.innerHTML = `<strong>【廃棄発動】</strong> P${playerNum}はどちらのサイコロを振り直す？<br>` +
+        `<button class='rect-btn' style='padding:6px 16px; font-size:15px; margin:8px 4px;' onclick='rerollSide(1)'>左 (${data.d1})</button>` +
+        `<button class='rect-btn' style='padding:6px 16px; font-size:15px; margin:8px 4px;' onclick='rerollSide(2)'>右 (${data.d2})</button>`;
+    duelBtn.classList.add("hidden");
+    cRing.classList.add("hidden");
+}
+
+window.rerollSide = function(side) {
+    let data = (disposalTargetPlayer === 1) ? p1Data : p2Data;
+    let newValue = rollDice();
+    if (side === 1) data.d1 = newValue; else data.d2 = newValue;
+
+    bP1Dice.textContent = `${DICE_ICONS[p1Data.d1]} ${DICE_ICONS[p1Data.d2]}`;
+    bP2Dice.textContent = `${DICE_ICONS[p2Data.d1]} ${DICE_ICONS[p2Data.d2]}`;
+    if (disposalTargetPlayer === 1) p1Data.selectedCard = { title: "廃棄(済)", name: "Disposal_used" };
+    else p2Data.selectedCard = { title: "廃棄(済)", name: "Disposal_used" };
+
+    bP1Card.textContent = p1Data.selectedCard ? p1Data.selectedCard.title : "なし";
+    bP2Card.textContent = p2Data.selectedCard ? p2Data.selectedCard.title : "なし";
+
+    battleLog.innerHTML = `P${disposalTargetPlayer}がダイスを変更！再計算の準備完了。`;
+    duelBtn.classList.remove("hidden");
+    cRing.classList.remove("hidden");
+};
+
+function executeBattleCalculation() {
+    let logText = "<strong>--- DUEL RESULT ---</strong><br>";
+    let p1Result = calculateDiceDamage(p1Data.d1, p1Data.d2);
+    let p2Result = calculateDiceDamage(p2Data.d1, p2Data.d2);
+    let p1GiveDmg = p1Result.damage; let p2GiveDmg = p2Result.damage;
+
+    logText += `ドクターの攻勢: [${p1Result.roleName}] ➔ ダメージ ${p1GiveDmg}<br>`;
+    logText += `ドラゴンの強襲: [${p2Result.roleName}] ➔ ダメージ ${p2GiveDmg}<br>`;
+
+    let p1SelfDmg = 0; let p2SelfDmg = 0;
+
+    if (p1Data.selectedCard) {
+        switch (p1Data.selectedCard.name) {
+            case "Dinamite": p1SelfDmg += 10; logText += "【P1】ダイナマイトが爆発！自身に10ダメージ。<br>"; break;
+            case "Drop out": p1HP = 0; logText += "【P1】ドクターが降参を選んだ！<br>"; break;
+            case "Dizzy": p1Dizzy = true; logText += "【P1】自身の過剰投与で「めまい」を発症！<br>"; break;
+            case "Disaster": p1SelfDmg += 10; p2SelfDmg += 10; logText += "【P1】天変地異発生！両者に10ダメージ。<br>"; break;
+        }
+    }
+    if (p2Data.selectedCard) {
+        switch (p2Data.selectedCard.name) {
+            case "Dinamite": p2SelfDmg += 10; logText += "【P2】ダイナマイトが爆発！自身に10ダメージ。<br>"; break;
+            case "Drop out": p2HP = 0; logText += "【P2】ドラゴンが戦意を喪失し降参！<br>"; break;
+            case "Dizzy": p2Dizzy = true; logText += "【P2】咆哮の反動で「めまい」を発症！<br>"; break;
+            case "Disaster": p1SelfDmg += 10; p2SelfDmg += 10; logText += "【P2】逆鱗が災いをもたらす！両者に10ダメージ。<br>"; break;
+        }
+    }
+
+    let p1TotalLoss = p2GiveDmg + p1SelfDmg;
+    let p2TotalLoss = p1GiveDmg + p2SelfDmg;
+
+    p1HP = Math.max(0, p1HP - p1TotalLoss);
+    p2HP = Math.max(0, p2HP - p2TotalLoss);
+
+    bPopP1.textContent = `-${p1TotalLoss}`;
+    bPopP2.textContent = `-${p2TotalLoss}`;
+    bPopP1.classList.remove("animate-damage");
+    bPopP2.classList.remove("animate-damage");
+    void bPopP1.offsetWidth; void bPopP2.offsetWidth;
+    bPopP1.classList.add("animate-damage");
+    bPopP2.classList.add("animate-damage");
+
+    updateHpDisplay();
+
+    if (p1HP <= 0 && p2HP <= 0) {
+        logText += "<br><span style='color:gold; font-size:18px;'>【DRAW】両者、死の淵へ同時に沈む...</span>"; endGame();
+    } else if (p1HP <= 0) {
+        logText += "<br><span style='color:#aabb22; font-size:18px;'>【P2 ドラゴンの勝利】ドクターは消滅した。</span>"; endGame();
+    } else if (p2HP <= 0) {
+        logText += "<br><span style='color:#1cb843; font-size:18px;'>【P1 ドクターの勝利】ドラゴンを解剖完了。</span>"; endGame();
+    } else {
+        duelBtn.classList.add("hidden"); cRing.classList.add("hidden");
+        nextBtn.classList.remove("hidden");
+    }
+    battleLog.innerHTML = logText;
+}
+
+nextBtn.addEventListener("click", () => { initPrepPhase(1); });
+
+function endGame() {
+    duelBtn.classList.add("hidden"); nextBtn.classList.add("hidden"); cRing.classList.add("hidden");
+    battleLog.innerHTML += `<br><br><button class='rect-btn' style='padding:6px 24px; font-size:16px;' onclick='location.reload()'>RESTART GAME</button>`;
+}
+</script>
+</body>
+</html>
