@@ -131,16 +131,6 @@ button:hover{
     font-size:40px;
     color:#ff4d4d;
 }
-
-.log{
-    margin-top:20px;
-    background:#2c2c2c;
-    padding:15px;
-    border-radius:10px;
-    text-align:left;
-    max-height:300px;
-    overflow-y:auto;
-}
 </style>
 </head>
 <body>
@@ -157,12 +147,15 @@ Docter Deployment turn-配置ターン
 
 <div class="player">
 <h2>Docter</h2>
+
 <div class="hp" id="p1hp">HP : 50</div>
 
 <div class="dice" id="p1dice">🎲 🎲</div>
+
 <div class="dice" id="p1extra"></div>
 
 <div class="role" id="p1role"></div>
+
 <div class="damage" id="p1damage"></div>
 
 <div class="card-area" id="p1cards"></div>
@@ -170,12 +163,15 @@ Docter Deployment turn-配置ターン
 
 <div class="player">
 <h2>Dragon</h2>
+
 <div class="hp" id="p2hp">HP : 50</div>
 
 <div class="dice" id="p2dice">🎲 🎲</div>
+
 <div class="dice" id="p2extra"></div>
 
 <div class="role" id="p2role"></div>
+
 <div class="damage" id="p2damage"></div>
 
 <div class="card-area" id="p2cards"></div>
@@ -213,8 +209,6 @@ Decide either card-カードを片方選択
 
 <div class="result" id="result"></div>
 
-<div class="log" id="log"></div>
-
 </div>
 
 <script>
@@ -242,7 +236,7 @@ description:"ダメージ値を+3する。"
 {
 name:"Desperate-必死",
 timing:1,
-description:"相手HP-自分HPの差をダメージに追加する。マイナスは0。"
+description:"相手HP-自分HPの差をダメージに追加する。"
 },
 
 {
@@ -266,7 +260,7 @@ description:"ダメージ値が6以上なら5にする。"
 {
 name:"Dull-退屈",
 timing:1,
-description:"役が成立していない場合、ダメージ値を0にする。"
+description:"役が成立していない場合ダメージ値を0にする。"
 },
 
 {
@@ -320,7 +314,7 @@ description:"50%で受けるダメージを0にする。"
 {
 name:"Dictator-独裁者",
 timing:4,
-description:"相手のダメージが自分より高い時、受けるダメージを0にする。"
+description:"相手ダメージが高い場合受けるダメージを0にする。"
 },
 
 {
@@ -332,46 +326,49 @@ description:"受けるダメージを2倍にする。"
 {
 name:"Defiance-反抗",
 timing:5,
-description:"自分が多く受けたダメージ分を相手へ与える。"
+description:"多く受けたダメージ分を相手へ返す。"
 },
 
 {
 name:"Dizzy-めまい",
 timing:5,
-description:"次ターン相手のカード表示を???にする。"
+description:"次ターン引くカード表示が???になる。"
 }
 
 ];
 
-let deck = [];
-
-function resetDeck(){
-    deck = [...fullDeck];
-}
-
-resetDeck();
+let deck = [...fullDeck];
 
 let currentTurn = 1;
 
-let p1 = createPlayer("Docter");
-let p2 = createPlayer("Dragon");
-
 function createPlayer(name){
-    return {
+
+    return{
         name:name,
         hp:50,
+
         dice1:0,
         dice2:0,
         extra:0,
+
         damage:0,
         role:"",
+
         cards:[],
         selectedCard:null,
+
         debt:0,
+
         dizzy:false,
+
+        disposalMode:false,
+
         receivedDamage:0
     };
 }
+
+let p1 = createPlayer("Docter");
+let p2 = createPlayer("Dragon");
 
 function randomDice(){
     return Math.floor(Math.random()*6)+1;
@@ -391,44 +388,66 @@ function rollDice(){
 
     player.dice1 = randomDice();
     player.dice2 = randomDice();
-    player.extra = 0;
-    player.role = "";
+
+    calculateDamage(player);
+
+    updateDisplay();
+
+    document.getElementById("rollBtn")
+    .classList.add("hidden");
+
+    document.getElementById("drawBtn")
+    .classList.remove("hidden");
+
+    document.getElementById("skipBtn")
+    .classList.remove("hidden");
+}
+
+function calculateDamage(player){
 
     let d1 = player.dice1;
     let d2 = player.dice2;
+
+    player.extra = 0;
+    player.role = "";
 
     let damage = d1 + d2;
 
     if(d1 === 1 && d2 === 1){
 
-        player.role = "Dog Dividend-わんわんボーナス";
+        player.role =
+        "Dog Dividend-わんわんボーナス";
+
         player.extra = randomDice();
+
         damage = (d1 + d2) * player.extra;
     }
 
     else if(d1 % 2 === 1 && d2 % 2 === 1){
 
-        player.role = "odd Dividend-奇数ボーナス";
+        player.role =
+        "odd Dividend-奇数ボーナス";
+
         damage = d1 * d2;
     }
 
     else if(d1 % 2 === 0 && d2 % 2 === 0){
 
-        player.role = "even Dividend-偶数ボーナス";
+        player.role =
+        "even Dividend-偶数ボーナス";
+
         damage = (d1 + d2) * 2;
     }
 
     damage += player.debt;
+
     player.debt = 0;
 
-    player.damage = Math.max(0, damage);
+    if(damage < 0){
+        damage = 0;
+    }
 
-    updateDisplay();
-
-    document.getElementById("rollBtn").classList.add("hidden");
-
-    document.getElementById("drawBtn").classList.remove("hidden");
-    document.getElementById("skipBtn").classList.remove("hidden");
+    player.damage = damage;
 }
 
 function drawCards(){
@@ -436,14 +455,15 @@ function drawCards(){
     let player = getPlayer();
 
     if(deck.length < 2){
-        resetDeck();
+        deck = [...fullDeck];
     }
 
     player.cards = [];
 
     for(let i=0;i<2;i++){
 
-        let index = Math.floor(Math.random()*deck.length);
+        let index =
+        Math.floor(Math.random()*deck.length);
 
         player.cards.push(deck[index]);
 
@@ -452,28 +472,36 @@ function drawCards(){
 
     showCards(player);
 
-    document.getElementById("drawBtn").classList.add("hidden");
-    document.getElementById("skipBtn").classList.add("hidden");
+    document.getElementById("drawBtn")
+    .classList.add("hidden");
 
-    document.getElementById("decideBtn").classList.remove("hidden");
+    document.getElementById("skipBtn")
+    .classList.add("hidden");
+
+    document.getElementById("decideBtn")
+    .classList.remove("hidden");
 }
 
 function showCards(player){
 
-    let area = player === p1 ?
-        document.getElementById("p1cards") :
-        document.getElementById("p2cards");
+    let area =
+    player === p1 ?
+    document.getElementById("p1cards") :
+    document.getElementById("p2cards");
 
     area.innerHTML = "";
 
-    player.cards.forEach((card)=>{
+    player.cards.forEach(card=>{
 
         let div = document.createElement("div");
 
         div.className = "card";
 
-        let displayName = player.dizzy ? "???" : card.name;
-        let displayDescription = player.dizzy ? "???" : card.description;
+        let displayName =
+        player.dizzy ? "???" : card.name;
+
+        let displayDescription =
+        player.dizzy ? "???" : card.description;
 
         div.innerHTML =
         `
@@ -499,12 +527,18 @@ function showCards(player){
 
         area.appendChild(div);
     });
+
+    // カード表示後に解除
+    player.dizzy = false;
 }
 
 function skipDraw(){
 
-    document.getElementById("drawBtn").classList.add("hidden");
-    document.getElementById("skipBtn").classList.add("hidden");
+    document.getElementById("drawBtn")
+    .classList.add("hidden");
+
+    document.getElementById("skipBtn")
+    .classList.add("hidden");
 
     nextTurn();
 }
@@ -525,9 +559,12 @@ function applyTiming1(player, enemy){
 
     if(card.includes("Desperate")){
 
-        let add = enemy.hp - player.hp;
+        let add =
+        enemy.hp - player.hp;
 
-        if(add < 0) add = 0;
+        if(add < 0){
+            add = 0;
+        }
 
         player.damage += add;
     }
@@ -557,6 +594,7 @@ function applyTiming1(player, enemy){
     if(card.includes("Debt")){
 
         player.damage += 5;
+
         player.debt = -10;
     }
 
@@ -571,9 +609,11 @@ function applyTiming2(){
 
         if(!player.selectedCard) return;
 
-        let card = player.selectedCard.name;
+        let card =
+        player.selectedCard.name;
 
         if(card.includes("Dynamic")){
+
             p1.damage *= 2;
             p2.damage *= 2;
         }
@@ -596,7 +636,8 @@ function applyTiming3(){
 
         if(!player.selectedCard) return;
 
-        let card = player.selectedCard.name;
+        let card =
+        player.selectedCard.name;
 
         if(card.includes("Dinamite")){
             player.hp -= 10;
@@ -607,6 +648,7 @@ function applyTiming3(){
         }
 
         if(card.includes("Disastar")){
+
             p1.hp -= 10;
             p2.hp -= 10;
         }
@@ -620,11 +662,13 @@ function applyTiming4(){
 
     [p1,p2].forEach((player,index)=>{
 
-        let enemy = index===0 ? p2 : p1;
+        let enemy =
+        index === 0 ? p2 : p1;
 
         if(!player.selectedCard) return;
 
-        let card = player.selectedCard.name;
+        let card =
+        player.selectedCard.name;
 
         if(card.includes("Defence")){
 
@@ -653,7 +697,6 @@ function applyTiming4(){
         if(card.includes("Defeat")){
             player.receivedDamage *= 2;
         }
-
     });
 }
 
@@ -661,16 +704,19 @@ function applyTiming5(){
 
     [p1,p2].forEach((player,index)=>{
 
-        let enemy = index===0 ? p2 : p1;
+        let enemy =
+        index === 0 ? p2 : p1;
 
         if(!player.selectedCard) return;
 
-        let card = player.selectedCard.name;
+        let card =
+        player.selectedCard.name;
 
         if(card.includes("Defiance")){
 
             let diff =
-            player.receivedDamage - enemy.receivedDamage;
+            player.receivedDamage -
+            enemy.receivedDamage;
 
             if(diff > 0){
                 enemy.hp -= diff;
@@ -678,18 +724,38 @@ function applyTiming5(){
         }
 
         if(card.includes("Dizzy")){
-            enemy.dizzy = true;
-        }
 
+            // 使用者自身が次ターン???表示
+            player.dizzy = true;
+        }
     });
 }
 
 function nextTurn(){
 
-    document.getElementById("doneBtn").classList.add("hidden");
+    document.getElementById("doneBtn")
+    .classList.add("hidden");
 
     let player = getPlayer();
     let enemy = getEnemy();
+
+    // Disposal
+    if(
+        player.selectedCard &&
+        player.selectedCard.name.includes("Disposal") &&
+        !player.disposalMode
+    ){
+
+        player.disposalMode = true;
+
+        document.getElementById("turnTitle")
+        .innerHTML =
+        `${player.name} Disposal turn-再抽選ターン`;
+
+        showRerollChoice(player);
+
+        return;
+    }
 
     applyTiming1(player, enemy);
 
@@ -699,7 +765,8 @@ function nextTurn(){
 
         currentTurn = 2;
 
-        document.getElementById("turnTitle").innerHTML =
+        document.getElementById("turnTitle")
+        .innerHTML =
         "Dragon Deployment turn-配置ターン";
 
         document.getElementById("rollBtn")
@@ -710,7 +777,8 @@ function nextTurn(){
 
         currentTurn = 3;
 
-        document.getElementById("turnTitle").innerHTML =
+        document.getElementById("turnTitle")
+        .innerHTML =
         "Duel turn";
 
         document.getElementById("duelBtn")
@@ -725,12 +793,80 @@ function nextTurn(){
 
         currentTurn = 1;
 
-        document.getElementById("turnTitle").innerHTML =
+        document.getElementById("turnTitle")
+        .innerHTML =
         "Docter Deployment turn-配置ターン";
 
         document.getElementById("rollBtn")
         .classList.remove("hidden");
     }
+}
+
+function showRerollChoice(player){
+
+    let area =
+    player === p1 ?
+    document.getElementById("p1cards") :
+    document.getElementById("p2cards");
+
+    area.innerHTML = "";
+
+    let btn1 =
+    document.createElement("button");
+
+    btn1.innerHTML =
+    `Reroll Dice 1 (${player.dice1})`;
+
+    btn1.onclick = ()=>{
+
+        player.dice1 = randomDice();
+
+        finishReroll(player);
+    };
+
+    let btn2 =
+    document.createElement("button");
+
+    btn2.innerHTML =
+    `Reroll Dice 2 (${player.dice2})`;
+
+    btn2.onclick = ()=>{
+
+        player.dice2 = randomDice();
+
+        finishReroll(player);
+    };
+
+    area.appendChild(btn1);
+    area.appendChild(btn2);
+}
+
+function finishReroll(player){
+
+    calculateDamage(player);
+
+    updateDisplay();
+
+    let area =
+    player === p1 ?
+    document.getElementById("p1cards") :
+    document.getElementById("p2cards");
+
+    area.innerHTML =
+    `
+    <div class="card">
+    <h3>Disposal Complete</h3>
+    <p>
+    再抽選完了<br>
+    Done turn-ターン終了 を押してください
+    </p>
+    </div>
+    `;
+
+    player.disposalMode = false;
+
+    document.getElementById("doneBtn")
+    .classList.remove("hidden");
 }
 
 function startDuel(){
@@ -764,57 +900,80 @@ function resetRound(){
 
         player.dice1 = 0;
         player.dice2 = 0;
+
         player.extra = 0;
+
         player.damage = 0;
+
         player.role = "";
+
         player.cards = [];
+
         player.selectedCard = null;
+
         player.receivedDamage = 0;
-        player.dizzy = false;
+
+        player.disposalMode = false;
     });
 
-    document.getElementById("p1cards").innerHTML = "";
-    document.getElementById("p2cards").innerHTML = "";
+    document.getElementById("p1cards")
+    .innerHTML = "";
+
+    document.getElementById("p2cards")
+    .innerHTML = "";
 }
 
 function updateDisplay(){
 
-    document.getElementById("p1hp").innerHTML =
+    document.getElementById("p1hp")
+    .innerHTML =
     `HP : ${p1.hp}`;
 
-    document.getElementById("p2hp").innerHTML =
+    document.getElementById("p2hp")
+    .innerHTML =
     `HP : ${p2.hp}`;
 
-    document.getElementById("p1dice").innerHTML =
+    document.getElementById("p1dice")
+    .innerHTML =
     `${p1.dice1} 🎲 ${p1.dice2}`;
 
-    document.getElementById("p2dice").innerHTML =
+    document.getElementById("p2dice")
+    .innerHTML =
     `${p2.dice1} 🎲 ${p2.dice2}`;
 
-    document.getElementById("p1extra").innerHTML =
-    p1.extra ? `Extra Dice : ${p1.extra}` : "";
+    document.getElementById("p1extra")
+    .innerHTML =
+    p1.extra ?
+    `Extra Dice : ${p1.extra}` : "";
 
-    document.getElementById("p2extra").innerHTML =
-    p2.extra ? `Extra Dice : ${p2.extra}` : "";
+    document.getElementById("p2extra")
+    .innerHTML =
+    p2.extra ?
+    `Extra Dice : ${p2.extra}` : "";
 
-    document.getElementById("p1role").innerHTML =
+    document.getElementById("p1role")
+    .innerHTML =
     p1.role;
 
-    document.getElementById("p2role").innerHTML =
+    document.getElementById("p2role")
+    .innerHTML =
     p2.role;
 
-    document.getElementById("p1damage").innerHTML =
+    document.getElementById("p1damage")
+    .innerHTML =
     `Dice Damage : ${p1.damage}`;
 
-    document.getElementById("p2damage").innerHTML =
+    document.getElementById("p2damage")
+    .innerHTML =
     `Dice Damage : ${p2.damage}`;
 }
 
 function checkWinner(){
 
-    let result = document.getElementById("result");
+    let result =
+    document.getElementById("result");
 
-    if(p1.hp <=0 && p2.hp <=0){
+    if(p1.hp <= 0 && p2.hp <= 0){
 
         result.innerHTML =
         `
@@ -823,10 +982,11 @@ function checkWinner(){
         `;
 
         endGame();
+
         return true;
     }
 
-    if(p2.hp <=0){
+    if(p2.hp <= 0){
 
         result.innerHTML =
         `
@@ -835,10 +995,11 @@ function checkWinner(){
         `;
 
         endGame();
+
         return true;
     }
 
-    if(p1.hp <=0){
+    if(p1.hp <= 0){
 
         result.innerHTML =
         `
@@ -847,6 +1008,7 @@ function checkWinner(){
         `;
 
         endGame();
+
         return true;
     }
 
@@ -867,7 +1029,8 @@ function endGame(){
         .classList.add("hidden");
     });
 
-    document.getElementById("turnTitle").innerHTML =
+    document.getElementById("turnTitle")
+    .innerHTML =
     "Game End";
 }
 
