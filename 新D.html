@@ -6,212 +6,662 @@
 <title>Dice Duel Ultimate</title>
 
 <style>
-body{
-    background:#1b1b1b;
-    color:white;
-    font-family:Arial;
-    text-align:center;
+
+*{
+    box-sizing:border-box;
     margin:0;
-    padding:20px;
+    padding:0;
 }
 
-h1{
-    color:gold;
+body{
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    font-family:Arial;
+    color:white;
+    background:black;
 }
 
-.game{
-    max-width:1200px;
-    margin:auto;
+/* =========================
+背景
+========================= */
+
+.background{
+    position:fixed;
+    inset:0;
+    background:black;
+    z-index:-1;
+}
+
+/* =========================
+全体
+========================= */
+
+#game{
+    width:100%;
+    height:100%;
+    padding:15px;
 }
 
 .turn-title{
-    font-size:30px;
-    margin-bottom:20px;
-    color:#00d9ff;
+    width:100%;
+    text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:#00e5ff;
+    text-shadow:0 0 10px #00e5ff;
 }
 
-.players{
+/* =========================
+配置ターン
+========================= */
+
+.deploy-layout{
+    width:100%;
+    height:calc(100% - 60px);
+
+    display:grid;
+    grid-template-columns: 35% 65%;
+}
+
+/* =========================
+左側
+========================= */
+
+.left-side{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:center;
+    padding-bottom:20px;
+}
+
+.player-image{
+    width:320px;
+    height:420px;
+    border:3px solid white;
+    border-radius:20px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:rgba(255,255,255,0.05);
+    font-size:30px;
+}
+
+.enemy-image{
+    width:140px;
+    height:180px;
+    border:3px solid white;
+    border-radius:20px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:rgba(255,255,255,0.05);
+    font-size:18px;
+}
+
+.flip{
+    transform:scaleX(-1);
+}
+
+.hp-area{
+    margin-top:20px;
+    width:90%;
+}
+
+.hp-bar{
+    width:100%;
+    height:40px;
+    border:3px solid white;
+    position:relative;
+    background:#222;
+}
+
+.hp-fill{
+    height:100%;
+    background:#2cff55;
+    transition:0.4s;
+}
+
+.hp-text{
+    margin-top:10px;
+    font-size:42px;
+    text-align:right;
+}
+
+/* =========================
+右側
+========================= */
+
+.right-side{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+.top-info{
     display:flex;
     justify-content:center;
     gap:20px;
-    flex-wrap:wrap;
+    margin-top:10px;
 }
 
-.player{
-    background:#2c2c2c;
-    border-radius:15px;
-    padding:20px;
-    width:500px;
+.dice-panel{
+    width:260px;
+    height:360px;
+    border:3px solid white;
+    padding:15px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
 }
 
-.hp{
-    font-size:24px;
-    margin-bottom:10px;
+.dice-box{
+    display:flex;
+    gap:15px;
+    margin-top:20px;
 }
 
 .dice{
-    font-size:45px;
-    margin:10px;
-}
+    width:90px;
+    height:120px;
+    border:2px solid white;
+    background:white;
+    color:black;
 
-.damage{
-    color:#ff6b6b;
-    font-size:25px;
-}
-
-.role{
-    color:#7CFC00;
-    font-size:22px;
-}
-
-.card-area{
     display:flex;
     justify-content:center;
+    align-items:center;
+
+    font-size:60px;
+    cursor:pointer;
+}
+
+.selected-dice{
+    border:5px solid gold;
+}
+
+.role-text{
+    margin-top:25px;
+    font-size:24px;
+    color:#7cff00;
+    text-align:center;
+}
+
+.damage-text{
+    margin-top:20px;
+    font-size:26px;
+    color:#ff6b6b;
+    text-align:center;
+}
+
+.cards-panel{
+    width:450px;
+    height:360px;
+    border:3px solid white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
     gap:15px;
-    margin-top:15px;
-    flex-wrap:wrap;
+    padding:10px;
 }
 
 .card{
-    width:220px;
-    min-height:170px;
-    background:#444;
-    border:3px solid transparent;
-    border-radius:12px;
-    padding:10px;
+    width:200px;
+    height:320px;
+    border:3px solid white;
+    background:#2b2b2b;
     cursor:pointer;
     transition:0.2s;
-    text-align:left;
+    padding:10px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
 }
 
 .card:hover{
+    transform:scale(1.03);
+}
+
+.selected-card{
+    border:5px solid gold;
+    box-shadow:0 0 15px gold;
+}
+
+.card-name{
+    text-align:center;
+    font-size:22px;
+    color:gold;
+}
+
+.card-image{
+    width:100%;
+    height:130px;
+    border:2px solid white;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.card-desc{
+    font-size:16px;
+    line-height:1.4;
+}
+
+/* =========================
+ボタン
+========================= */
+
+.button-area{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.main-btn{
+    min-width:260px;
+    min-height:90px;
+    padding:15px 25px;
+
+    border:none;
+    cursor:pointer;
+
+    background:#ff9800;
+    color:white;
+
+    font-size:28px;
+    border-radius:20px;
+
+    transition:0.2s;
+}
+
+.main-btn:hover{
     transform:scale(1.05);
 }
 
-.selected{
-    border-color:gold;
-}
-
-.card h3{
-    margin-top:0;
-    color:#ffd700;
-}
-
-.card p{
-    font-size:14px;
-    line-height:1.5;
-}
-
-button{
-    background:#ff9800;
-    color:white;
-    border:none;
-    padding:12px 20px;
-    margin:10px;
-    border-radius:10px;
-    cursor:pointer;
-    font-size:16px;
-}
-
-button:hover{
-    background:#ffb84d;
-}
-
 .disabled{
-    background:#555 !important;
-    cursor:not-allowed;
+    opacity:0.4;
+    pointer-events:none;
+}
+
+/* =========================
+敵
+========================= */
+
+.enemy-area{
+    width:100%;
+    display:flex;
+    justify-content:flex-end;
+    align-items:flex-end;
+    gap:20px;
+    padding-right:40px;
+}
+
+/* =========================
+実行ターン
+========================= */
+
+.duel-layout{
+    width:100%;
+    height:calc(100% - 60px);
+
+    display:grid;
+    grid-template-columns:1fr 260px 1fr;
+    align-items:center;
+}
+
+.duel-player{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:20px;
+}
+
+.duel-top{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+}
+
+.single-card{
+    width:240px;
+    height:340px;
+    border:3px solid white;
+    background:#2b2b2b;
+    padding:10px;
+}
+
+.duel-middle{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+}
+
+.duel-character{
+    width:250px;
+    height:320px;
+    border:3px solid white;
+    border-radius:20px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:rgba(255,255,255,0.05);
+}
+
+.duel-center{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.duel-btn{
+    width:220px;
+    height:220px;
+
+    border:none;
+    cursor:pointer;
+
+    background:#ff0033;
+    color:white;
+
+    font-size:38px;
+    font-weight:bold;
+
+    clip-path:polygon(
+    50% 0%,
+    61% 20%,
+    82% 18%,
+    73% 38%,
+    100% 50%,
+    73% 62%,
+    82% 82%,
+    61% 80%,
+    50% 100%,
+    39% 80%,
+    18% 82%,
+    27% 62%,
+    0% 50%,
+    27% 38%,
+    18% 18%,
+    39% 20%
+    );
+
+    transition:0.2s;
+}
+
+.duel-btn:hover{
+    transform:scale(1.08);
+}
+
+.win-text{
+    font-size:42px;
+    text-align:center;
+    color:gold;
+    text-shadow:0 0 15px gold;
+    margin-top:20px;
 }
 
 .hidden{
-    display:none;
+    display:none !important;
 }
 
-.result{
-    margin-top:25px;
-    font-size:40px;
-    color:#ff4d4d;
-}
 </style>
 </head>
+
 <body>
 
-<div class="game">
+<div class="background"></div>
 
-<h1>Dice Duel Ultimate</h1>
+<div id="game">
 
 <div id="turnTitle" class="turn-title">
 Docter Deployment turn-配置ターン
 </div>
 
-<div class="players">
+<!-- =========================
+配置ターン
+========================= -->
 
-<div class="player">
-<h2>Docter</h2>
+<div id="deployScreen" class="deploy-layout">
 
-<div class="hp" id="p1hp">HP : 50</div>
+    <!-- 左 -->
+    <div class="left-side">
 
-<div class="dice" id="p1dice">🎲 🎲</div>
+        <div id="mainCharacter" class="player-image">
+            Player Image
+        </div>
 
-<div class="dice" id="p1extra"></div>
+        <div class="hp-area">
 
-<div class="role" id="p1role"></div>
+            <div class="hp-bar">
+                <div id="mainHpFill" class="hp-fill"></div>
+            </div>
 
-<div class="damage" id="p1damage"></div>
+            <div id="mainHpText" class="hp-text">
+                50 / 50
+            </div>
 
-<div class="card-area" id="p1cards"></div>
+        </div>
+
+    </div>
+
+    <!-- 右 -->
+    <div class="right-side">
+
+        <div class="top-info">
+
+            <!-- サイコロ -->
+            <div class="dice-panel">
+
+                <div class="dice-box">
+
+                    <div id="dice1" class="dice">?</div>
+
+                    <div id="dice2" class="dice">?</div>
+
+                </div>
+
+                <div id="roleText" class="role-text"></div>
+
+                <div id="damageText" class="damage-text">
+                    Deduction Damage-予測ダメージ :
+                </div>
+
+            </div>
+
+            <!-- カード -->
+            <div class="cards-panel">
+
+                <div id="card1" class="card hidden"></div>
+
+                <div id="card2" class="card hidden"></div>
+
+            </div>
+
+        </div>
+
+        <!-- ボタン -->
+        <div class="button-area" id="buttonArea">
+
+            <button
+            id="mainBtn"
+            class="main-btn"
+            onclick="rollDice()">
+            Double Dice roll
+            </button>
+
+        </div>
+
+        <!-- 敵 -->
+        <div class="enemy-area">
+
+            <div class="enemy-image flip">
+                Enemy
+            </div>
+
+            <div style="width:260px;">
+
+                <div class="hp-bar">
+                    <div id="enemyHpFill" class="hp-fill"></div>
+                </div>
+
+                <div id="enemyHpText"
+                class="hp-text"
+                style="font-size:30px;">
+                50 / 50
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="player">
-<h2>Dragon</h2>
+<!-- =========================
+実行ターン
+========================= -->
 
-<div class="hp" id="p2hp">HP : 50</div>
+<div id="duelScreen" class="duel-layout hidden">
 
-<div class="dice" id="p2dice">🎲 🎲</div>
+    <!-- 左 -->
+    <div class="duel-player">
 
-<div class="dice" id="p2extra"></div>
+        <div class="duel-top">
 
-<div class="role" id="p2role"></div>
+            <div class="dice-panel">
 
-<div class="damage" id="p2damage"></div>
+                <div class="dice-box">
 
-<div class="card-area" id="p2cards"></div>
+                    <div class="dice" id="duelP1Dice1">?</div>
+                    <div class="dice" id="duelP1Dice2">?</div>
+
+                </div>
+
+                <div id="duelP1Role" class="role-text"></div>
+
+                <div id="duelP1Damage"
+                class="damage-text"></div>
+
+            </div>
+
+            <div id="duelP1Card"
+            class="single-card"></div>
+
+        </div>
+
+        <div class="duel-middle">
+
+            <div class="duel-character">
+                Docter
+            </div>
+
+            <div style="width:300px;">
+
+                <div class="hp-bar">
+                    <div id="duelP1HpFill"
+                    class="hp-fill"></div>
+                </div>
+
+                <div id="duelP1HpText"
+                class="hp-text">
+                50 / 50
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 中央 -->
+    <div class="duel-center">
+
+        <button id="duelBtn"
+        class="duel-btn"
+        onclick="startDuel()">
+        Duel
+        </button>
+
+    </div>
+
+    <!-- 右 -->
+    <div class="duel-player">
+
+        <div class="duel-top">
+
+            <div class="dice-panel">
+
+                <div class="dice-box">
+
+                    <div class="dice" id="duelP2Dice1">?</div>
+                    <div class="dice" id="duelP2Dice2">?</div>
+
+                </div>
+
+                <div id="duelP2Role"
+                class="role-text"></div>
+
+                <div id="duelP2Damage"
+                class="damage-text"></div>
+
+            </div>
+
+            <div id="duelP2Card"
+            class="single-card"></div>
+
+        </div>
+
+        <div class="duel-middle">
+
+            <div class="duel-character flip">
+                Dragon
+            </div>
+
+            <div style="width:300px;">
+
+                <div class="hp-bar">
+                    <div id="duelP2HpFill"
+                    class="hp-fill"></div>
+                </div>
+
+                <div id="duelP2HpText"
+                class="hp-text">
+                50 / 50
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
-
-</div>
-
-<div>
-
-<button id="rollBtn" onclick="rollDice()">
-Double Dice roll
-</button>
-
-<button id="drawBtn" class="hidden" onclick="drawCards()">
-Dual Draw-２枚ドロー
-</button>
-
-<button id="skipBtn" class="hidden" onclick="skipDraw()">
-Draw skip-ドロースキップ
-</button>
-
-<button id="duelBtn" class="hidden" onclick="startDuel()">
-Duel
-</button>
-
-<button id="doneBtn" class="hidden" onclick="nextTurn()">
-Done turn-ターン終了
-</button>
-
-<button id="decideBtn" class="hidden disabled">
-Decide either card-カードを片方選択
-</button>
-
-</div>
-
-<div class="result" id="result"></div>
 
 </div>
 
 <script>
+
+/* =========================
+カード
+========================= */
 
 const fullDeck = [
 
@@ -339,12 +789,16 @@ description:"次ターン引くカード表示が???になる。"
 
 let deck = [...fullDeck];
 
-let currentTurn = 1;
+/* =========================
+プレイヤー
+========================= */
 
 function createPlayer(name){
 
     return{
+
         name:name,
+
         hp:50,
 
         dice1:0,
@@ -352,9 +806,11 @@ function createPlayer(name){
         extra:0,
 
         damage:0,
+
         role:"",
 
         cards:[],
+
         selectedCard:null,
 
         debt:0,
@@ -363,12 +819,20 @@ function createPlayer(name){
 
         disposalMode:false,
 
+        rerollTarget:null,
+
         receivedDamage:0
     };
 }
 
 let p1 = createPlayer("Docter");
 let p2 = createPlayer("Dragon");
+
+let currentTurn = 1;
+
+/* =========================
+基本
+========================= */
 
 function randomDice(){
     return Math.floor(Math.random()*6)+1;
@@ -382,34 +846,74 @@ function getEnemy(){
     return currentTurn === 1 ? p2 : p1;
 }
 
-function rollDice(){
+/* =========================
+更新
+========================= */
+
+function updateUI(){
 
     let player = getPlayer();
+    let enemy = getEnemy();
 
-    player.dice1 = randomDice();
-    player.dice2 = randomDice();
+    document.getElementById("turnTitle")
+    .innerHTML =
+    `${player.name} Deployment turn-配置ターン`;
 
-    calculateDamage(player);
+    /* HP */
 
-    updateDisplay();
+    let playerHpPercent =
+    (player.hp / 50) * 100;
 
-    document.getElementById("rollBtn")
-    .classList.add("hidden");
+    let enemyHpPercent =
+    (enemy.hp / 50) * 100;
 
-    document.getElementById("drawBtn")
-    .classList.remove("hidden");
+    document.getElementById("mainHpFill")
+    .style.width =
+    playerHpPercent + "%";
 
-    document.getElementById("skipBtn")
-    .classList.remove("hidden");
+    document.getElementById("enemyHpFill")
+    .style.width =
+    enemyHpPercent + "%";
+
+    document.getElementById("mainHpText")
+    .innerHTML =
+    `${player.hp} / 50`;
+
+    document.getElementById("enemyHpText")
+    .innerHTML =
+    `${enemy.hp} / 50`;
+
+    /* サイコロ */
+
+    document.getElementById("dice1")
+    .innerHTML =
+    player.dice1 || "?";
+
+    document.getElementById("dice2")
+    .innerHTML =
+    player.dice2 || "?";
+
+    document.getElementById("roleText")
+    .innerHTML =
+    player.role;
+
+    document.getElementById("damageText")
+    .innerHTML =
+    `Deduction Damage-予測ダメージ : ${player.damage}`;
 }
+
+/* =========================
+ダメージ計算
+========================= */
 
 function calculateDamage(player){
 
     let d1 = player.dice1;
     let d2 = player.dice2;
 
-    player.extra = 0;
     player.role = "";
+
+    player.extra = 0;
 
     let damage = d1 + d2;
 
@@ -420,10 +924,12 @@ function calculateDamage(player){
 
         player.extra = randomDice();
 
-        damage = (d1 + d2) * player.extra;
+        damage =
+        (d1 + d2) * player.extra;
     }
 
-    else if(d1 % 2 === 1 && d2 % 2 === 1){
+    else if(d1 % 2 === 1 &&
+    d2 % 2 === 1){
 
         player.role =
         "odd Dividend-奇数ボーナス";
@@ -431,7 +937,8 @@ function calculateDamage(player){
         damage = d1 * d2;
     }
 
-    else if(d1 % 2 === 0 && d2 % 2 === 0){
+    else if(d1 % 2 === 0 &&
+    d2 % 2 === 0){
 
         player.role =
         "even Dividend-偶数ボーナス";
@@ -450,15 +957,50 @@ function calculateDamage(player){
     player.damage = damage;
 }
 
+/* =========================
+サイコロ
+========================= */
+
+function rollDice(){
+
+    let player = getPlayer();
+
+    player.dice1 = randomDice();
+    player.dice2 = randomDice();
+
+    calculateDamage(player);
+
+    updateUI();
+
+    document.getElementById("buttonArea")
+    .innerHTML =
+
+    `
+    <button class="main-btn"
+    onclick="drawCards()">
+    Dual Draw-２枚ドロー
+    </button>
+
+    <button class="main-btn"
+    onclick="skipDraw()">
+    Draw skip-ドロースキップ
+    </button>
+    `;
+}
+
+/* =========================
+カード
+========================= */
+
 function drawCards(){
 
     let player = getPlayer();
 
+    player.cards = [];
+
     if(deck.length < 2){
         deck = [...fullDeck];
     }
-
-    player.cards = [];
 
     for(let i=0;i<2;i++){
 
@@ -470,43 +1012,44 @@ function drawCards(){
         deck.splice(index,1);
     }
 
-    showCards(player);
+    renderCards(player);
 
-    document.getElementById("drawBtn")
-    .classList.add("hidden");
-
-    document.getElementById("skipBtn")
-    .classList.add("hidden");
-
-    document.getElementById("decideBtn")
-    .classList.remove("hidden");
+    renderDoneButton(false);
 }
 
-function showCards(player){
+function renderCards(player){
 
-    let area =
-    player === p1 ?
-    document.getElementById("p1cards") :
-    document.getElementById("p2cards");
+    const cardDivs = [
+        document.getElementById("card1"),
+        document.getElementById("card2")
+    ];
 
-    area.innerHTML = "";
+    player.cards.forEach((card,index)=>{
 
-    player.cards.forEach(card=>{
+        let div = cardDivs[index];
 
-        let div = document.createElement("div");
+        div.classList.remove("hidden");
 
-        div.className = "card";
-
-        let displayName =
+        let title =
         player.dizzy ? "???" : card.name;
 
-        let displayDescription =
+        let desc =
         player.dizzy ? "???" : card.description;
 
         div.innerHTML =
+
         `
-        <h3>${displayName}</h3>
-        <p>${displayDescription}</p>
+        <div class="card-name">
+        ${title}
+        </div>
+
+        <div class="card-image">
+        IMAGE
+        </div>
+
+        <div class="card-desc">
+        ${desc}
+        </div>
         `;
 
         div.onclick = ()=>{
@@ -514,40 +1057,216 @@ function showCards(player){
             player.selectedCard = card;
 
             document.querySelectorAll(".card")
-            .forEach(c=>c.classList.remove("selected"));
+            .forEach(c=>
+            c.classList.remove("selected-card"));
 
-            div.classList.add("selected");
+            div.classList.add("selected-card");
 
-            document.getElementById("doneBtn")
-            .classList.remove("hidden");
-
-            document.getElementById("decideBtn")
-            .classList.add("hidden");
+            renderDoneButton(true);
         };
-
-        area.appendChild(div);
     });
 
-    // カード表示後に解除
     player.dizzy = false;
+}
+
+function renderDoneButton(enable){
+
+    document.getElementById("buttonArea")
+    .innerHTML =
+
+    `
+    <button
+    id="doneButton"
+    class="main-btn ${enable ? "" : "disabled"}"
+    onclick="nextTurn()">
+    Done turn-ターン終了
+    </button>
+    `;
 }
 
 function skipDraw(){
 
-    document.getElementById("drawBtn")
-    .classList.add("hidden");
+    document.getElementById("buttonArea")
+    .innerHTML =
 
-    document.getElementById("skipBtn")
-    .classList.add("hidden");
-
-    nextTurn();
+    `
+    <button
+    class="main-btn"
+    onclick="nextTurn()">
+    Done turn-ターン終了
+    </button>
+    `;
 }
 
-function applyTiming1(player, enemy){
+/* =========================
+廃棄
+========================= */
+
+function startRerollMode(player){
+
+    player.disposalMode = true;
+
+    document.getElementById("dice1")
+    .onclick = ()=>{
+
+        player.rerollTarget = 1;
+
+        selectDice(1);
+    };
+
+    document.getElementById("dice2")
+    .onclick = ()=>{
+
+        player.rerollTarget = 2;
+
+        selectDice(2);
+    };
+
+    document.getElementById("buttonArea")
+    .innerHTML =
+
+    `
+    <button
+    id="rerollBtn"
+    class="main-btn disabled"
+    onclick="rerollDice()">
+    Reroll
+    </button>
+    `;
+}
+
+function selectDice(num){
+
+    document.getElementById("dice1")
+    .classList.remove("selected-dice");
+
+    document.getElementById("dice2")
+    .classList.remove("selected-dice");
+
+    document.getElementById(
+    `dice${num}`
+    ).classList.add("selected-dice");
+
+    document.getElementById("rerollBtn")
+    .classList.remove("disabled");
+}
+
+function rerollDice(){
+
+    let player = getPlayer();
+
+    if(player.rerollTarget === 1){
+
+        player.dice1 = randomDice();
+    }
+
+    else{
+
+        player.dice2 = randomDice();
+    }
+
+    calculateDamage(player);
+
+    updateUI();
+
+    document.getElementById("buttonArea")
+    .innerHTML =
+
+    `
+    <button
+    class="main-btn"
+    onclick="finishTurnAfterReroll()">
+    Done turn-ターン終了
+    </button>
+    `;
+}
+
+function finishTurnAfterReroll(){
+
+    let player = getPlayer();
+
+    player.disposalMode = false;
+
+    player.rerollTarget = null;
+
+    nextTurn(true);
+}
+
+/* =========================
+ターン終了
+========================= */
+
+function nextTurn(fromReroll=false){
+
+    let player = getPlayer();
+
+    if(
+        player.selectedCard &&
+        player.selectedCard.name.includes("Disposal") &&
+        !player.disposalMode &&
+        !fromReroll
+    ){
+
+        startRerollMode(player);
+
+        return;
+    }
+
+    applyTiming1(
+    player,
+    getEnemy()
+    );
+
+    if(currentTurn === 1){
+
+        currentTurn = 2;
+
+        resetDeployUI();
+
+        updateUI();
+
+        return;
+    }
+
+    startDuelScreen();
+}
+
+function resetDeployUI(){
+
+    document.getElementById("card1")
+    .classList.add("hidden");
+
+    document.getElementById("card2")
+    .classList.add("hidden");
+
+    document.getElementById("card1")
+    .classList.remove("selected-card");
+
+    document.getElementById("card2")
+    .classList.remove("selected-card");
+
+    document.getElementById("buttonArea")
+    .innerHTML =
+
+    `
+    <button
+    class="main-btn"
+    onclick="rollDice()">
+    Double Dice roll
+    </button>
+    `;
+}
+
+/* =========================
+カード効果
+========================= */
+
+function applyTiming1(player,enemy){
 
     if(!player.selectedCard) return;
 
-    let card = player.selectedCard.name;
+    let card =
+    player.selectedCard.name;
 
     if(card.includes("Dozen")){
         player.damage = 12;
@@ -725,154 +1444,125 @@ function applyTiming5(){
 
         if(card.includes("Dizzy")){
 
-            // 使用者自身が次ターン???表示
             player.dizzy = true;
         }
     });
 }
 
-function nextTurn(){
+/* =========================
+実行ターン
+========================= */
 
-    document.getElementById("doneBtn")
+function startDuelScreen(){
+
+    document.getElementById("deployScreen")
     .classList.add("hidden");
 
-    let player = getPlayer();
-    let enemy = getEnemy();
+    document.getElementById("duelScreen")
+    .classList.remove("hidden");
 
-    // Disposal
-    if(
-        player.selectedCard &&
-        player.selectedCard.name.includes("Disposal") &&
-        !player.disposalMode
-    ){
+    document.getElementById("turnTitle")
+    .innerHTML =
+    "Duel turn";
 
-        player.disposalMode = true;
+    renderDuelInfo();
+}
 
-        document.getElementById("turnTitle")
-        .innerHTML =
-        `${player.name} Disposal turn-再抽選ターン`;
+function renderDuelInfo(){
 
-        showRerollChoice(player);
+    document.getElementById("duelP1Dice1")
+    .innerHTML = p1.dice1;
+
+    document.getElementById("duelP1Dice2")
+    .innerHTML = p1.dice2;
+
+    document.getElementById("duelP1Role")
+    .innerHTML = p1.role;
+
+    document.getElementById("duelP1Damage")
+    .innerHTML =
+    `Deduction Damage-予測ダメージ : ${p1.damage}`;
+
+    document.getElementById("duelP2Dice1")
+    .innerHTML = p2.dice1;
+
+    document.getElementById("duelP2Dice2")
+    .innerHTML = p2.dice2;
+
+    document.getElementById("duelP2Role")
+    .innerHTML = p2.role;
+
+    document.getElementById("duelP2Damage")
+    .innerHTML =
+    `Deduction Damage-予測ダメージ : ${p2.damage}`;
+
+    renderSingleCard(
+    "duelP1Card",
+    p1.selectedCard
+    );
+
+    renderSingleCard(
+    "duelP2Card",
+    p2.selectedCard
+    );
+
+    updateDuelHp();
+}
+
+function renderSingleCard(id,card){
+
+    let div =
+    document.getElementById(id);
+
+    if(!card){
+
+        div.innerHTML =
+        `
+        <div class="card-name">
+        No Card
+        </div>
+        `;
 
         return;
     }
 
-    applyTiming1(player, enemy);
+    div.innerHTML =
 
-    updateDisplay();
-
-    if(currentTurn === 1){
-
-        currentTurn = 2;
-
-        document.getElementById("turnTitle")
-        .innerHTML =
-        "Dragon Deployment turn-配置ターン";
-
-        document.getElementById("rollBtn")
-        .classList.remove("hidden");
-    }
-
-    else if(currentTurn === 2){
-
-        currentTurn = 3;
-
-        document.getElementById("turnTitle")
-        .innerHTML =
-        "Duel turn";
-
-        document.getElementById("duelBtn")
-        .classList.remove("hidden");
-    }
-
-    else{
-
-        if(checkWinner()) return;
-
-        resetRound();
-
-        currentTurn = 1;
-
-        document.getElementById("turnTitle")
-        .innerHTML =
-        "Docter Deployment turn-配置ターン";
-
-        document.getElementById("rollBtn")
-        .classList.remove("hidden");
-    }
-}
-
-function showRerollChoice(player){
-
-    let area =
-    player === p1 ?
-    document.getElementById("p1cards") :
-    document.getElementById("p2cards");
-
-    area.innerHTML = "";
-
-    let btn1 =
-    document.createElement("button");
-
-    btn1.innerHTML =
-    `Reroll Dice 1 (${player.dice1})`;
-
-    btn1.onclick = ()=>{
-
-        player.dice1 = randomDice();
-
-        finishReroll(player);
-    };
-
-    let btn2 =
-    document.createElement("button");
-
-    btn2.innerHTML =
-    `Reroll Dice 2 (${player.dice2})`;
-
-    btn2.onclick = ()=>{
-
-        player.dice2 = randomDice();
-
-        finishReroll(player);
-    };
-
-    area.appendChild(btn1);
-    area.appendChild(btn2);
-}
-
-function finishReroll(player){
-
-    calculateDamage(player);
-
-    updateDisplay();
-
-    let area =
-    player === p1 ?
-    document.getElementById("p1cards") :
-    document.getElementById("p2cards");
-
-    area.innerHTML =
     `
-    <div class="card">
-    <h3>Disposal Complete</h3>
-    <p>
-    再抽選完了<br>
-    Done turn-ターン終了 を押してください
-    </p>
+    <div class="card-name">
+    ${card.name}
+    </div>
+
+    <div class="card-image">
+    IMAGE
+    </div>
+
+    <div class="card-desc">
+    ${card.description}
     </div>
     `;
+}
 
-    player.disposalMode = false;
+function updateDuelHp(){
 
-    document.getElementById("doneBtn")
-    .classList.remove("hidden");
+    document.getElementById("duelP1HpFill")
+    .style.width =
+    (p1.hp / 50) * 100 + "%";
+
+    document.getElementById("duelP2HpFill")
+    .style.width =
+    (p2.hp / 50) * 100 + "%";
+
+    document.getElementById("duelP1HpText")
+    .innerHTML =
+    `${p1.hp} / 50`;
+
+    document.getElementById("duelP2HpText")
+    .innerHTML =
+    `${p2.hp} / 50`;
 }
 
 function startDuel(){
-
-    document.getElementById("duelBtn")
-    .classList.add("hidden");
 
     applyTiming2();
 
@@ -888,13 +1578,88 @@ function startDuel(){
     if(p1.hp < 0) p1.hp = 0;
     if(p2.hp < 0) p2.hp = 0;
 
-    updateDisplay();
+    updateDuelHp();
 
-    document.getElementById("doneBtn")
-    .classList.remove("hidden");
+    showResultIfNeeded();
+
+    document.getElementById("duelBtn")
+    .innerHTML =
+    "Done turn-ターン終了";
+
+    document.getElementById("duelBtn")
+    .onclick = ()=>{
+
+        nextRound();
+    };
 }
 
-function resetRound(){
+/* =========================
+勝敗
+========================= */
+
+function showResultIfNeeded(){
+
+    if(p1.hp <= 0 && p2.hp <= 0){
+
+        document.getElementById("duelP1Card")
+        .innerHTML =
+        `<div class="win-text">
+        Drow-引き分け
+        </div>`;
+
+        document.getElementById("duelP2Card")
+        .innerHTML =
+        `<div class="win-text">
+        Drow-引き分け
+        </div>`;
+
+        return;
+    }
+
+    if(p2.hp <= 0){
+
+        document.getElementById("duelP1Card")
+        .innerHTML =
+        `<div class="win-text">
+        Demination-制圧
+        </div>`;
+
+        document.getElementById("duelP2Card")
+        .innerHTML =
+        `<div class="win-text">
+        Defeat-敗北
+        </div>`;
+
+        return;
+    }
+
+    if(p1.hp <= 0){
+
+        document.getElementById("duelP1Card")
+        .innerHTML =
+        `<div class="win-text">
+        Defeat-敗北
+        </div>`;
+
+        document.getElementById("duelP2Card")
+        .innerHTML =
+        `<div class="win-text">
+        Demination-制圧
+        </div>`;
+    }
+}
+
+/* =========================
+次ラウンド
+========================= */
+
+function nextRound(){
+
+    if(p1.hp <= 0 || p2.hp <= 0){
+        return;
+    }
+
+    currentTurn = 1;
 
     [p1,p2].forEach(player=>{
 
@@ -914,127 +1679,32 @@ function resetRound(){
         player.receivedDamage = 0;
 
         player.disposalMode = false;
+
+        player.rerollTarget = null;
     });
 
-    document.getElementById("p1cards")
-    .innerHTML = "";
+    document.getElementById("duelScreen")
+    .classList.add("hidden");
 
-    document.getElementById("p2cards")
-    .innerHTML = "";
+    document.getElementById("deployScreen")
+    .classList.remove("hidden");
+
+    resetDeployUI();
+
+    updateUI();
+
+    document.getElementById("duelBtn")
+    .innerHTML = "Duel";
+
+    document.getElementById("duelBtn")
+    .onclick = startDuel;
 }
 
-function updateDisplay(){
+/* =========================
+開始
+========================= */
 
-    document.getElementById("p1hp")
-    .innerHTML =
-    `HP : ${p1.hp}`;
-
-    document.getElementById("p2hp")
-    .innerHTML =
-    `HP : ${p2.hp}`;
-
-    document.getElementById("p1dice")
-    .innerHTML =
-    `${p1.dice1} 🎲 ${p1.dice2}`;
-
-    document.getElementById("p2dice")
-    .innerHTML =
-    `${p2.dice1} 🎲 ${p2.dice2}`;
-
-    document.getElementById("p1extra")
-    .innerHTML =
-    p1.extra ?
-    `Extra Dice : ${p1.extra}` : "";
-
-    document.getElementById("p2extra")
-    .innerHTML =
-    p2.extra ?
-    `Extra Dice : ${p2.extra}` : "";
-
-    document.getElementById("p1role")
-    .innerHTML =
-    p1.role;
-
-    document.getElementById("p2role")
-    .innerHTML =
-    p2.role;
-
-    document.getElementById("p1damage")
-    .innerHTML =
-    `Dice Damage : ${p1.damage}`;
-
-    document.getElementById("p2damage")
-    .innerHTML =
-    `Dice Damage : ${p2.damage}`;
-}
-
-function checkWinner(){
-
-    let result =
-    document.getElementById("result");
-
-    if(p1.hp <= 0 && p2.hp <= 0){
-
-        result.innerHTML =
-        `
-        Docter : Drow-引き分け<br>
-        Dragon : Drow-引き分け
-        `;
-
-        endGame();
-
-        return true;
-    }
-
-    if(p2.hp <= 0){
-
-        result.innerHTML =
-        `
-        Docter : Demination-制圧<br>
-        Dragon : Defeat-敗北
-        `;
-
-        endGame();
-
-        return true;
-    }
-
-    if(p1.hp <= 0){
-
-        result.innerHTML =
-        `
-        Dragon : Demination-制圧<br>
-        Docter : Defeat-敗北
-        `;
-
-        endGame();
-
-        return true;
-    }
-
-    return false;
-}
-
-function endGame(){
-
-    [
-        "rollBtn",
-        "drawBtn",
-        "skipBtn",
-        "doneBtn",
-        "duelBtn"
-    ].forEach(id=>{
-
-        document.getElementById(id)
-        .classList.add("hidden");
-    });
-
-    document.getElementById("turnTitle")
-    .innerHTML =
-    "Game End";
-}
-
-updateDisplay();
+updateUI();
 
 </script>
 
