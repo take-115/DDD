@@ -459,6 +459,12 @@ body{
     overflow:hidden;
 }
 
+.card-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
 .card-desc{
     font-size:15px;
     line-height:1.5;
@@ -721,12 +727,107 @@ body{
     display:none !important;
 }
 
+#introScreen{
+    position:fixed;
+    inset:0;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(0,0,0,0.92);
+}
+
+.intro-panel{
+    width:min(100%, 980px);
+    max-height:calc(100vh - 64px);
+    overflow:auto;
+    padding:32px;
+    border-radius:28px;
+    background:rgba(8,18,38,0.98);
+    border:1px solid rgba(255,255,255,0.14);
+    box-shadow:0 30px 90px rgba(0,0,0,0.65);
+}
+
+.intro-panel h1{
+    font-size:42px;
+    margin-bottom:12px;
+    text-align:center;
+    color:#7eefff;
+}
+
+.intro-panel h2{
+    font-size:24px;
+    margin:24px 0 12px;
+    color:#f4faff;
+}
+
+.intro-panel p,
+.intro-panel ul{
+    color:#dfe7ff;
+    line-height:1.8;
+    margin-bottom:16px;
+}
+
+.intro-panel ul{
+    padding-left:20px;
+}
+
+.intro-panel li{
+    margin-bottom:8px;
+}
+
+.intro-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:180px;
+    margin-top:16px;
+    padding:14px 22px;
+    border:none;
+    border-radius:999px;
+    background:#50c7ff;
+    color:#03111e;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 12px 30px rgba(80,199,255,0.35);
+}
+
+.intro-button:hover{
+    background:#70d7ff;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="background"></div>
+
+<div id="introScreen">
+    <div class="intro-panel">
+        <h1>Destiny Dual Dice Darth Dopamine</h1>
+        <h2>Discipline Description Document</h2>
+        <p>このゲームはさいころを二つ振ってでた目によるダメージを与えあい、相手のHPを0にすれば勝ちとなる1vs1の対戦ゲームです。</p>
+        <h2>自分のターンですること</h2>
+        <ol>
+            <li>さいころを二つ振ります。基本的には二つのさいころの和がこのターンの攻撃力となりますが、さいころには役があり役が成立するとボーナスが追加されます。</li>
+            <li>Dare deck（山札）から二枚カードをドローするか、ドローをスキップするかを選択します。</li>
+            <li>ターンエンド</li>
+            <li>お互いのサイコロの目とカードを公開して、ダメージを与えあいます。</li>
+            <li>繰り返し</li>
+        </ol>
+        <h2>役一覧</h2>
+        <ul>
+            <li>奇数と奇数: 二つの出目の和ではなく積で計算します。例 5と3が出たとき15ダメージ</li>
+            <li>偶数と偶数: 二つの出目の和に2をかけます。例 2と4が出たとき12ダメージ</li>
+            <li>1と1: わんわんでDog。もう一つさいころを振り、その数を二つの出目の和にかけます。例 1と1を出し、追加のさいころで5が出たとき10ダメージ</li>
+        </ul>
+        <p>Developer: Driver, Design</p>
+        <button class="intro-button" onclick="hideIntroScreen()">ゲーム開始</button>
+    </div>
+</div>
 
 <div id="game">
 
@@ -956,7 +1057,15 @@ Docter Deployment turn-配置ターン
 
 </div>
 
+<audio id="bgm" loop preload="auto">
+    <source src="setunaitsubasa.mp3" type="audio/mp3">
+</audio>
+
 <script>
+
+    /*BGM*/
+    const bgm = document.getElementById("bgm");
+    bgm.volume = 0.5; // 音量を50%に設定
 
 /* =========================
 カード
@@ -1316,13 +1425,154 @@ function calculateDamage(player){
 サイコロ
 ========================= */
 
+/* =========================
+サウンドマネージャ (外部 mp3 が無ければ合成音でフォールバック)
+========================= */
+
+const _audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+
+function synthSound(type){
+    if(!_audioCtx) return;
+    if(_audioCtx.state === 'suspended'){
+        _audioCtx.resume().catch(()=>{});
+    }
+
+    const now = _audioCtx.currentTime;
+    // helper to create a short tone
+    function tone(freq, dur, wave='sine', vol=0.2, startOffset=0){
+        const o = _audioCtx.createOscillator();
+        const g = _audioCtx.createGain();
+        o.type = wave;
+        o.frequency.setValueAtTime(freq, now + startOffset);
+        g.gain.setValueAtTime(vol, now + startOffset);
+        o.connect(g); g.connect(_audioCtx.destination);
+        o.start(now + startOffset);
+        g.gain.exponentialRampToValueAtTime(0.001, now + startOffset + dur);
+        o.stop(now + startOffset + dur + 0.02);
+    }
+
+    if(type === 'punch'){
+        tone(80, 0.16, 'square', 0.6);
+    } else if(type === 'cards'){
+        tone(900, 0.06, 'sine', 0.18);
+        tone(1200, 0.06, 'sine', 0.14, 0.07);
+    } else {
+        // rolling/default
+        tone(380, 0.12, 'sawtooth', 0.18);
+    }
+}
+
+function playSound(name){
+    const path = `oto/${name}.mp3`;
+    try{
+        const a = new Audio(path);
+        const p = a.play();
+        if(p !== undefined){
+            p.catch(()=>{ synthSound(name); });
+        }
+        a.addEventListener('error', ()=>{ synthSound(name); });
+    }catch(e){
+        synthSound(name);
+    }
+}
+
+let _bgmAudio = null;
+
+async function startBgm(){
+    const candidates = ["切ない翼","setsunai_tsubasa","bgm","background"];
+    for(const name of candidates){
+        const path = `oto/${name}.mp3`;
+        try{
+            const a = new Audio(path);
+            a.loop = true;
+            a.volume = 0.32;
+            await a.play();
+            _bgmAudio = a;
+            console.log('BGM playing', path);
+            return;
+        }catch(e){
+            // try next candidate
+            console.warn('BGM failed to play', path, e);
+            continue;
+        }
+    }
+
+    // fallback: ensure AudioContext resumed so synth sounds can play later
+    if(_audioCtx){
+        if(_audioCtx.state === 'suspended'){
+            try{ await _audioCtx.resume(); }catch(e){}
+        }
+
+        // create a simple ambient synth as BGM fallback
+        try{
+            const now = _audioCtx.currentTime;
+            const osc = _audioCtx.createOscillator();
+            const gain = _audioCtx.createGain();
+            const lfo = _audioCtx.createOscillator();
+            const lfoGain = _audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(220, now);
+            gain.gain.setValueAtTime(0.02, now);
+
+            lfo.type = 'sine';
+            lfo.frequency.setValueAtTime(0.25, now);
+            lfoGain.gain.setValueAtTime(0.01, now);
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(gain.gain);
+
+            osc.connect(gain);
+            gain.connect(_audioCtx.destination);
+
+            lfo.start(now);
+            osc.start(now);
+
+            _bgmAudio = {
+                isSynth:true,
+                osc, gain, lfo, lfoGain,
+                paused:false,
+                play: function(){ if(this.paused){ this.paused = false; this.gain.gain.setTargetAtTime(0.02, _audioCtx.currentTime, 0.02); } },
+                pause: function(){ if(!this.paused){ this.paused = true; this.gain.gain.setTargetAtTime(0.0001, _audioCtx.currentTime, 0.02); } },
+                stop: function(){ try{ this.osc.stop(); this.lfo.stop(); }catch(e){} }
+            };
+
+            console.log('BGM synth started as fallback');
+            return;
+        }catch(e){
+            console.warn('Failed to start synth BGM', e);
+        }
+    }
+}
+
+function toggleBgm(){
+    if(!_bgmAudio) return;
+    // handle synth fallback object
+    if(_bgmAudio.isSynth){
+        if(_bgmAudio.paused){
+            _bgmAudio.play();
+        }else{
+            _bgmAudio.pause();
+        }
+        return;
+    }
+
+    // handle HTMLAudioElement
+    if(_bgmAudio.paused){
+        _bgmAudio.play().catch(()=>{});
+    }else{
+        _bgmAudio.pause();
+    }
+}
+
 function rollDice(){
 
+    // play rolling sound (mp3 in oto/rolling.mp3 if present, otherwise synth)
+    playSound('rolling');
     let player = getPlayer();
 
     player.dice1 = randomDice();
     player.dice2 = randomDice();
-
     calculateDamage(player);
 
     updateUI();
@@ -1348,7 +1598,6 @@ function rollDice(){
 ========================= */
 
 function drawCards(){
-
     let player = getPlayer();
 
     player.cards = [];
@@ -1357,6 +1606,8 @@ function drawCards(){
         deck = [...fullDeck];
     }
 
+    // play card draw sound (mp3 in oto/cards.mp3 if present, otherwise synth)
+    playSound('cards');
     for(let i=0;i<2;i++){
 
         let index =
@@ -1399,7 +1650,7 @@ function renderCards(player){
         </div>
 
         <div class="card-image">
-        IMAGE
+        ${getCardImageHtml(card, player.dizzy)}
         </div>
 
         <div class="card-desc">
@@ -1451,6 +1702,38 @@ function skipDraw(){
     Done turn-ターン終了
     </button>
     `;
+}
+
+function getCardImageHtml(card, hidden){
+    if(!card || hidden) return "";
+
+    const imageMap = {
+        "Disposal-廃棄":"disposal.png",
+        "Dozen-ダース":"dozen.png",
+        "Doping-ドーピング":"doping.png",
+        "Desperate-必死":"desperate.png",
+        "Decay-腐敗":"decay.png",
+        "Decline-減少":"decline.png",
+        "Duty-義務":"duty.png",
+        "Dull-退屈":"dull.png",
+        "Debt-借金":"debt.png",
+        "Dynamic-ダイナミック":"dynamic.png",
+        "Declare-宣言":"declare.png",
+        "Dinamite-ダイナマイト":"dinamite.png",
+        "Drop out-降参":"drop_out.png",
+        "Disastar-災害":"disastar.png",
+        "Defence-防御":"defence.png",
+        "Dodge-回避":"dodge.png",
+        "Dictator-独裁者":"dictator.png",
+        "Defeat-欠陥":"defeat.png",
+        "Defiance-反抗":"defiance.png",
+        "Dizzy-めまい":"dizzy.png"
+    };
+
+    const imageFile = imageMap[card.name];
+    if(!imageFile) return "";
+
+    return `<img src="${imageFile}" alt="${card.name}" />`;
 }
 
 /* =========================
@@ -1902,7 +2185,7 @@ function renderSingleCard(id,card){
     </div>
 
     <div class="card-image">
-    IMAGE
+    ${getCardImageHtml(card, false)}
     </div>
 
     <div class="card-desc">
@@ -1931,7 +2214,8 @@ function updateDuelHp(){
 }
 
 function startDuel(){
-
+    // play punch sound (mp3 in oto/punch.mp3 if present, otherwise synth)
+    playSound('punch');
     applyTiming2();
 
     applyTiming3();
@@ -1959,6 +2243,14 @@ function startDuel(){
 
         nextRound();
     };
+}
+
+function hideIntroScreen(){
+    document.getElementById("introScreen")
+    .classList.add("hidden");
+
+    // start background music when the player begins (tries several filenames)
+    startBgm();
 }
 
 /* =========================
